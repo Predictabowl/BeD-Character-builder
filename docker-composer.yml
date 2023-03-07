@@ -1,0 +1,20 @@
+# docker-compose.yml
+# This docker compose is meant to be used to test the full application manually.
+# Do NOT have it run when building with Maven!
+# To launch integration tests separately (from eclipse) use the one inside the configuration-module folder
+version: "3.8"
+
+services:
+   database:
+      image: postgres:15.2
+      environment:
+         - POSTGRES_USER=testUser
+         - POSTGRES_PASSWORD=password
+         - POSTGRES_DB=BeDProjectTestDb
+      volumes:
+         - database-data:/var/lib/postresql/data/
+      ports:
+         - "5432:5432"
+         
+volumes:
+   database-data:
