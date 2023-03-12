@@ -1,27 +1,32 @@
 package org.predictabowl.bed.domain.characteristic;
 
+import java.util.Map;
 import java.util.Objects;
 
-import org.predictabowl.bed.domain.attributes.Attributi;
+import org.predictabowl.bed.domain.attributes.AttributoFunction;
+import org.predictabowl.bed.domain.constants.CaratteristicaFunctions;
+import org.predictabowl.bed.domain.constants.TipoAttributo;
+import org.predictabowl.bed.domain.utils.CaratteristicaFunctionsRetriever;
 
-public class Caratteristica {
+public class Caratteristica<T extends CaratteristicaFunctions> {
 
-	private TipoCaratteristica type;
+	private T type;
 	private int value;
-	private Attributi attributes;
+	private CaratteristicaFunctionsRetriever carFRetriever;
 
-	public Caratteristica(TipoCaratteristica type, int value) {
+	public Caratteristica(T type,
+			CaratteristicaFunctionsRetriever carFRetriever,
+			int value) {
 		this.type = type;
+		this.carFRetriever = carFRetriever;
 		this.value = value;
-		this.attributes = new Attributi();
-		calculateAttributes();
 	}
 
-	public Caratteristica(TipoCaratteristica type) {
-		this(type, 5);
+	public Caratteristica(T type, CaratteristicaFunctionsRetriever carFRetriever) {
+		this(type, carFRetriever, 5);
 	}
-
-	public TipoCaratteristica getType() {
+	
+	public T getType() {
 		return type;
 	}
 
@@ -31,31 +36,36 @@ public class Caratteristica {
 
 	public void setValue(int value) {
 		this.value = value;
-		calculateAttributes();
 	}
-
-	public Attributi getAttributes() {
-		return attributes;
+	
+	public int getAttributoValue(TipoAttributo type) {
+		return getAttributoFunction(type).apply(value);
 	}
-
-	public void setAttributes(Attributi attributes) {
-		this.attributes = attributes;
+	
+	private AttributoFunction getAttributoFunction(TipoAttributo type) {
+		Map<TipoAttributo,AttributoFunction> attrFs = carFRetriever.get(getType());
+		if (attrFs.containsKey(type)) {
+			return attrFs.get(type);
+		}
+		return (Integer v) -> 0; 
 	}
 
 	public void modValue(int mod) {
 		value += mod;
 	}
 
-	protected void calculateAttributes() {
-//		child classes should override this method to populate all attributes
+	@Override
+	public String toString() {
+		return "Caratteristica [type=" + type + ", value=" + value + "]";
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(attributes, type, value);
+		return Objects.hash(type, value);
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
@@ -63,13 +73,12 @@ public class Caratteristica {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Caratteristica other = (Caratteristica) obj;
-		return Objects.equals(attributes, other.attributes) && type == other.type && value == other.value;
+		Caratteristica<T> other = (Caratteristica<T>) obj;
+		return Objects.equals(type, other.type) && value == other.value;
 	}
 
-	@Override
-	public String toString() {
-		return "Caratteristica [type=" + type + ", value=" + value + ", attributes=" + attributes + "]";
+	public CaratteristicaFunctionsRetriever getCarFRetriever() {
+		return carFRetriever;
 	}
 
 }

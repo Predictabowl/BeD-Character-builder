@@ -3,48 +3,42 @@ package org.predictabowl.bed.domain.characteristic;
 import java.util.Objects;
 
 import org.predictabowl.bed.commons.exceptions.BeDIllegalValueException;
+import org.predictabowl.bed.domain.characteristic.factory.CaratteristicaFactory;
+import org.predictabowl.bed.domain.characteristic.model.SubCarOffset;
+import org.predictabowl.bed.domain.constants.DataCaratteristicaPrimaria;
+import org.predictabowl.bed.domain.constants.DataCaratteristicaSecondaria;
+import org.predictabowl.bed.domain.constants.TipoAttributo;
+import org.predictabowl.bed.domain.utils.CaratteristicaFunctionsRetriever;
 
-public class CaratteristicaPrimaria extends Caratteristica {
+public class CaratteristicaPrimaria extends Caratteristica<DataCaratteristicaPrimaria> {
 
 	public static final int MAX_VALUE = 10;
 	public static final int MIN_VALUE = 1;
 	
-	private TipoCaratteristica type;
-	private Caratteristica sub1;
-	private Caratteristica sub2;
+	private long id;
+	private int offset;
+	private CaratteristicaFactory<CaratteristicaSecondaria, DataCaratteristicaSecondaria> carFactory;
 
-	public CaratteristicaPrimaria(TipoCaratteristica type, int value) {
-		super(type, value);
-		if(!type.isPrimaria) {
-			throw new BeDIllegalValueException("Characteristic type "+type+" is not primary");
-		}
+	public CaratteristicaPrimaria(DataCaratteristicaPrimaria type,
+			int value,
+			CaratteristicaFactory<CaratteristicaSecondaria, DataCaratteristicaSecondaria> carFactory,
+			CaratteristicaFunctionsRetriever carFRetriever) {
+		super(type, carFRetriever, value);
 		selfValidate(value);
-		this.sub1 = new Caratteristica(
-				type.sub1.orElseThrow(IllegalArgumentException::new),
-				value);
-		this.sub2 = new Caratteristica(
-				type.sub2.orElseThrow(IllegalArgumentException::new),
-				value);
+		this.carFactory = carFactory;
+		this.offset = 0;
+	}
+
+	public long getId() {
+		return id;
 	}
 	
-	public CaratteristicaPrimaria(TipoCaratteristica type) {
-		this(type, 5);
+	public void setId(long id) {
+		this.id = id;
 	}
 
-	public void setOffset(int offset) {
-		if (offset > 1 || offset < -1) {
-			throw new BeDIllegalValueException("Offset value must be between -1 ad 1.");
-		}
-		this.sub1.setValue(getValue()+offset);
-		this.sub2.setValue(getValue()-offset);
-	}
-
-	public TipoCaratteristica getType() {
-		return type;
-	}
-
-	protected void setType(TipoCaratteristica type) {
-		this.type = type;
+	public void setOffset(SubCarOffset  offset) {
+		this.offset = offset.getOffset();
 	}
 
 	@Override
@@ -53,20 +47,25 @@ public class CaratteristicaPrimaria extends Caratteristica {
 		super.setValue(value);
 	}
 
-	public Caratteristica getSubCar1() {
-		return sub1;
+	public CaratteristicaSecondaria getSubCar1() {
+		return carFactory.get(getType().sub1, getValue()+offset);
 	}
 	
-	public Caratteristica getSubCar2() {
-		return sub2;
+	public CaratteristicaSecondaria getSubCar2() {
+		return carFactory.get(getType().sub2, getValue()-offset);
 	}
 	
-//	public List<Attributo> getAllAttributes(){
-//		LinkedList<Attributo> attributes = new LinkedList<>(getAttributes());
-//		attributes.addAll(sub1.getAttributes());
-//		attributes.addAll(sub2.getAttributes());
-//		return attributes;
-//	}
+	public CaratteristicaFactory<CaratteristicaSecondaria, 
+				DataCaratteristicaSecondaria> getCaratteristicaFactory() {
+		return carFactory;
+	}
+	
+	@Override
+	public int getAttributoValue(TipoAttributo type) {
+		return super.getAttributoValue(type) +
+				getSubCar1().getAttributoValue(type) +
+				getSubCar2().getAttributoValue(type);
+	}
 
 	@Override
 	public void modValue(int mod) {
@@ -84,7 +83,8 @@ public class CaratteristicaPrimaria extends Caratteristica {
 
 	private void selfValidate(int value) {
 		if (value < MIN_VALUE || value > MAX_VALUE) {
-			throw new BeDIllegalValueException("Caratteristica Primaria value must be between 1 and 10");
+			throw new BeDIllegalValueException(
+					"Caratteristica Primaria value must be between 1 and 10");
 		}
 	}
 
@@ -92,7 +92,7 @@ public class CaratteristicaPrimaria extends Caratteristica {
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + Objects.hash(sub1, sub2, type);
+		result = prime * result + Objects.hash(offset);
 		return result;
 	}
 
@@ -105,13 +105,12 @@ public class CaratteristicaPrimaria extends Caratteristica {
 		if (getClass() != obj.getClass())
 			return false;
 		CaratteristicaPrimaria other = (CaratteristicaPrimaria) obj;
-		return Objects.equals(sub1, other.sub1) && Objects.equals(sub2, other.sub2) && type == other.type;
+		return offset == other.offset;
 	}
 
 	@Override
 	public String toString() {
-		return "CaratteristicaPrimaria [type=" + type + ", sub1=" + sub1 + ", sub2=" + sub2 + ", toString()="
-				+ super.toString() + "]";
+		return "CaratteristicaPrimaria [offset=" + offset + ", toString()=" + super.toString() + "]";
 	}
-	
+
 }

@@ -1,48 +1,66 @@
 package org.predictabowl.bed.domain.attributes;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
-import org.predictabowl.bed.commons.interfaces.Summable;
+import org.predictabowl.bed.commons.interfaces.Mergeable;
+import org.predictabowl.bed.domain.constants.TipoAttributo;
 
-public class Attributi implements Summable<Attributi>{
+public class Attributi implements Mergeable<Attributi> {
 
-	private EnumMap<TipoAttributo, Attributo> map;
+	private final Map<TipoAttributo, Integer> values;
 	
 	public Attributi() {
-		map = new EnumMap<>(TipoAttributo.class);
+		this.values = new EnumMap<>(TipoAttributo.class);
 	}
 	
-	public List<Attributo> getAttributi(){
-		return new ArrayList<>(map.values()); 
+	// This constructor retains the entries with value 0
+	public Attributi(Attributi attributi) {
+		this.values = new EnumMap<>(attributi.values);
 	}
 	
-	public Attributo getAttributo(TipoAttributo type) {
-		if (map.containsKey(type)) {
-			return map.get(type);
+	public Attributi(Map<TipoAttributo,Integer> values) {
+		this.values = new EnumMap<>(values.entrySet().stream()
+				.filter(e -> e.getValue() != 0)
+				.collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
+	}
+	
+	public int getValue(TipoAttributo attributo) {
+		if (values.containsKey(attributo)) {
+			return values.get(attributo);
 		}
-		return new Attributo(type, 0);
+		return 0;
+	}
+		
+	public void setValue(TipoAttributo attributo, int value) {
+		if(value == 0) {
+			values.remove(attributo);
+		} else {
+			values.put(attributo, value);
+		}
 	}
 	
-	public void addAttributo(Attributo attr) {
-		map.put(attr.getType(), getAttributo(attr.getType()).addSummable(attr));
+	public void modValue(TipoAttributo type, int mod){
+		setValue(type, getValue(type)+mod);
 	}
-
+	
+	public Map<TipoAttributo, Integer> getMap() {
+		return values;
+	}
+	
 	@Override
-	public Attributi addSummable(Attributi element) {
-		map.values().forEach(k -> 
-			element.map.values().forEach(k::addSummable));
-		element.map.forEach((k,v) -> map.putIfAbsent(k, v));
-		return this;
+	public Attributi merge(Attributi element) {
+		Attributi mergedA = new Attributi(values);
+		element.values.forEach(mergedA::modValue);
+		return mergedA;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(map);
+		return Objects.hash(values);
 	}
 
 	@Override
@@ -54,12 +72,11 @@ public class Attributi implements Summable<Attributi>{
 		if (getClass() != obj.getClass())
 			return false;
 		Attributi other = (Attributi) obj;
-		return Objects.equals(map, other.map);
+		return Objects.equals(values, other.values);
 	}
 
 	@Override
 	public String toString() {
-		return "Attributi [map=" + map + "]";
+		return "Attributi [values=" + values + "]";
 	}
-	
 }

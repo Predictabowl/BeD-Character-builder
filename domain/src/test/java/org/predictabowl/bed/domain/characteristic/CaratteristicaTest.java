@@ -1,64 +1,79 @@
 package org.predictabowl.bed.domain.characteristic;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.spy;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InOrder;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.predictabowl.bed.domain.attributes.Attributi;
-import org.predictabowl.bed.domain.attributes.Attributo;
-import org.predictabowl.bed.domain.attributes.TipoAttributo;
+import org.mockito.MockitoAnnotations;
+import org.predictabowl.bed.domain.attributes.AttributoFunction;
+import org.predictabowl.bed.domain.constants.DataCaratteristicaSecondaria;
+import org.predictabowl.bed.domain.constants.TipoAttributo;
+import org.predictabowl.bed.domain.utils.CaratteristicaFunctionsRetriever;
 
 class CaratteristicaTest {
 
-	private Caratteristica sut;
+	private final static int FIXTURE_CAR_VAL = 5;
 	
-	class CarTest extends Caratteristica{
+	private Caratteristica<?> sut;
+	
+	@Mock
+	private CaratteristicaFunctionsRetriever carFRetr;
 
-		public CarTest() {
-			super(TipoCaratteristica.INTELLIGENZA);
-		}
-		
-		public void setTestAttr(Attributi list) {
-			setAttributes(list);
-		}
-		
+	private AutoCloseable openMocks;
+	
+	@BeforeEach
+	void setUp() {
+		openMocks = MockitoAnnotations.openMocks(this);
+		sut = makeCar(DataCaratteristicaSecondaria.MUSCOLI, FIXTURE_CAR_VAL);
+	}
+	
+	@AfterEach
+	void tearDown() throws Exception {
+		openMocks.close();
 	}
 	
 	@Test
 	void test_modValue() {
-		sut = new Caratteristica(TipoCaratteristica.FORZA, 5);
-		
 		sut.modValue(3);
-		assertThat(sut.getValue()).isEqualTo(8);
+		assertThat(sut.getValue()).isEqualTo(FIXTURE_CAR_VAL+3);
 		
 		sut.modValue(-5);
-		assertThat(sut.getValue()).isEqualTo(3);
+		assertThat(sut.getValue()).isEqualTo(FIXTURE_CAR_VAL+3-5);
 	}
 	
 	@Test
-	void test_getAttributo() {
-		CarTest car = new CarTest();
-		Attributo attr1 = new Attributo(TipoAttributo.CARICO, 3);
-		Attributo attr2 = new Attributo(TipoAttributo.CARICO, 2);
-		Attributo attr3 = new Attributo(TipoAttributo.CRIT, 5);
-		Attributi attrs = new Attributi();
-		attrs.addAttributo(attr1);
-		attrs.addAttributo(attr2);
-		attrs.addAttributo(attr3);
-		car.setTestAttr(attrs);
+	void test_getAttributo_whenMissing() {
+		Map<TipoAttributo, AttributoFunction> map = new HashMap<>();
+		when(carFRetr.get(any())).thenReturn(map);
 		
-		Attributi attrs2 = car.getAttributes();
+		int result = sut.getAttributoValue(TipoAttributo.CRIT);
 		
+		assertThat(result).isZero();
+		verify(carFRetr).get(DataCaratteristicaSecondaria.MUSCOLI);
+	}
+	
+	@Test
+	void test_getAttributo_whenPresent() {
+		Map<TipoAttributo, AttributoFunction> map = new HashMap<>();
+		map.put(TipoAttributo.CRIT, (v) -> v*2);
+		when(carFRetr.get(any())).thenReturn(map);
 		
-//		Attributo result = car.getAttribute(TipoAttributo.CARICO);
+		int result = sut.getAttributoValue(TipoAttributo.CRIT);
 		
-//		assertThat(result).isEqualTo(new Attributo(TipoAttributo.CARICO,5));
+		assertThat(result).isEqualTo(FIXTURE_CAR_VAL*2);
+		verify(carFRetr).get(DataCaratteristicaSecondaria.MUSCOLI);
+	}
+	
+	private Caratteristica<?> makeCar(DataCaratteristicaSecondaria type, int value) {
+		return new Caratteristica<>(type, carFRetr, value);
 	}
 
 }
