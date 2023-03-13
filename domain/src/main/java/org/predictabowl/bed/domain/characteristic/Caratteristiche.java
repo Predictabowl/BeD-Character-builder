@@ -1,6 +1,7 @@
 package org.predictabowl.bed.domain.characteristic;
 
 import java.util.EnumMap;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.predictabowl.bed.domain.characteristic.factory.CaratteristicaPrimariaFactory;

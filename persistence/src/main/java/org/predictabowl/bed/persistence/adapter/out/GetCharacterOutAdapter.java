@@ -2,7 +2,7 @@ package org.predictabowl.bed.persistence.adapter.out;
 
 import java.util.Optional;
 
-import org.predictabowl.bed.domain.Character;
+import org.predictabowl.bed.domain.PersonaggioGiocante;
 import org.predictabowl.bed.persistence.repository.CharacterEntityRepository;
 import org.predictabowl.bed.port.out.GetCharacterOutPort;
 import org.springframework.stereotype.Component;
@@ -18,7 +18,7 @@ public class GetCharacterOutAdapter implements GetCharacterOutPort{
 	}
 
 	@Override
-	public Optional<Character> get(long id) {
+	public Optional<PersonaggioGiocante> get(long id) {
 		charRepo.getReferenceById(id);
 		return Optional.empty();
 	}

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.predictabowl.bed.domain.Character;
+import org.predictabowl.bed.domain.PersonaggioGiocante;
 import org.predictabowl.bed.persistence.entity.CharacterEntity;
 import org.predictabowl.bed.persistence.repository.CharacterEntityRepository;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -40,7 +40,7 @@ class GetCharacterOutAdapterTest {
 		CharacterEntity pgEntity = new CharacterEntity(); 
 		when(charRepo.getReferenceById(anyLong())).thenReturn(pgEntity);
 		
-		Optional<Character> result = sut.get(3);
+		Optional<PersonaggioGiocante> result = sut.get(3);
 		
 		verify(charRepo).getReferenceById(3L);
 		
