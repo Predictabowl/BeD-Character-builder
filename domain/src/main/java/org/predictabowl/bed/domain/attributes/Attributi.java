@@ -23,9 +23,10 @@ public class Attributi implements Mergeable<Attributi> {
 	}
 	
 	public Attributi(Map<TipoAttributo,Integer> values) {
-		this.values = new EnumMap<>(values.entrySet().stream()
-				.filter(e -> e.getValue() != 0)
-				.collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
+		Map<TipoAttributo,Integer> collect = values.entrySet().stream()
+		.filter(e -> e.getValue() != 0)
+		.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+		this.values = new EnumMap<>(collect);
 	}
 	
 	public int getValue(TipoAttributo attributo) {
