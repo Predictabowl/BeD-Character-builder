@@ -1,4 +1,4 @@
-package org.predictabowl.bed.domain;
+package org.predictabowl.bed.domain.classe;
 
 import java.util.ArrayList;
 import java.util.List;

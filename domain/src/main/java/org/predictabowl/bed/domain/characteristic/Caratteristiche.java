@@ -1,24 +1,31 @@
 package org.predictabowl.bed.domain.characteristic;
 
 import java.util.EnumMap;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
-import org.predictabowl.bed.domain.characteristic.factory.CaratteristicaPrimariaFactory;
+import org.predictabowl.bed.domain.attributes.AttributiCollection;
+import org.predictabowl.bed.domain.attributes.AttributiInterface;
+import org.predictabowl.bed.domain.attributes.factory.AttributiCollectionFactory;
+import org.predictabowl.bed.domain.characteristic.factory.CaratteristicaPrimariaFactoryImpl;
+import org.predictabowl.bed.domain.characteristic.model.CarPValue;
 import org.predictabowl.bed.domain.constants.DataCaratteristicaPrimaria;
 import org.predictabowl.bed.domain.constants.DataCaratteristicaSecondaria;
-import org.predictabowl.bed.domain.constants.TipoAttributo;
 import org.springframework.stereotype.Component;
 
 @Component
 public class Caratteristiche {
 
 	private EnumMap<DataCaratteristicaPrimaria, CaratteristicaPrimaria> map;
+	private final AttributiCollection attributiCollection;
 	
-	public Caratteristiche(CaratteristicaPrimariaFactory carFactory) {
+	public Caratteristiche(CaratteristicaPrimariaFactoryImpl carFactory,
+			AttributiCollectionFactory attributiCollectionFactory) {
 		map = new EnumMap<>(DataCaratteristicaPrimaria.class);
 		Stream.of(DataCaratteristicaPrimaria.values()).forEach(t -> 
-			getMap().put(t, carFactory.get(t,5)));
+			getMap().put(t, carFactory.get(t,new CarPValue(5))));
+		
+		this.attributiCollection = attributiCollectionFactory.get(
+				map.values().stream().map(c -> c.getAttributi()).toList());
 	}
 	
 	public CaratteristicaPrimaria getCaratteristica(DataCaratteristicaPrimaria type) {
@@ -33,11 +40,9 @@ public class Caratteristiche {
 		}
 		return car.getSubCar2();
 	}
-
-	public int getAttributo(TipoAttributo type) {
-		
-		return map.values().stream().map(k -> k.getAttributoValue(type))
-			.reduce(0, (subtotal,v) -> subtotal+v);
+	
+	public AttributiInterface getAttributi() {
+		return attributiCollection;
 	}
 
 	protected EnumMap<DataCaratteristicaPrimaria, CaratteristicaPrimaria> getMap() {

@@ -1,8 +1,8 @@
 package org.predictabowl.bed.domain.attributes.factory;
 
-import org.predictabowl.bed.domain.attributes.Attributi;
+import org.predictabowl.bed.domain.attributes.AttributiInterface;
 
-public interface AttributiFactory {
+public interface AttributiFactory<V, T extends AttributiInterface>{
 
-	public Attributi get();
+	public T get(V value);
 }

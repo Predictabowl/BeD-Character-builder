@@ -15,10 +15,11 @@ import static org.predictabowl.bed.domain.constants.DataCaratteristicaSecondaria
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.function.IntUnaryOperator;
 
-import org.predictabowl.bed.domain.attributes.AttributoFunction;
+import org.predictabowl.bed.domain.utils.FunctionsProvider;
 
-public enum DataCaratteristicaPrimaria implements CaratteristicaFunctions{
+public enum DataCaratteristicaPrimaria implements FunctionsProvider{
 	FORZA(MUSCOLI, VIGORE),
 	DESTREZZA(EQUILIBRIO, PRECISIONE),
 	COSTITUZIONE(RESISTENZA, SALUTE),
@@ -36,7 +37,7 @@ public enum DataCaratteristicaPrimaria implements CaratteristicaFunctions{
 	}
 
 	@Override
-	public Map<TipoAttributo, AttributoFunction> getAttributoFunctions() {
+	public Map<TipoAttributo, IntUnaryOperator> getAttributoFunctions() {
 		return new EnumMap<>(TipoAttributo.class);
 	}
 

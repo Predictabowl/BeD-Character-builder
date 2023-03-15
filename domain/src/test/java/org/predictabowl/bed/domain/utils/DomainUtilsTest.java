@@ -33,5 +33,4 @@ class DomainUtilsTest {
 		assertThatThrownBy(() -> DomainUtils.getCarCombinataValue(5,7,3,4))
 			.isInstanceOf(IllegalArgumentException.class);
 	}
-
 }

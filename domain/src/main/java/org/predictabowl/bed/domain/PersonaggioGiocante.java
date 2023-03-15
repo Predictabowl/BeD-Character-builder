@@ -1,6 +1,7 @@
 package org.predictabowl.bed.domain;
 
 import org.predictabowl.bed.domain.characteristic.Caratteristiche;
+import org.predictabowl.bed.domain.classe.ClassePG;
 import org.predictabowl.bed.domain.constants.DataCaratteristicaDerivata;
 import org.predictabowl.bed.domain.constants.DataCaratteristicaPrimaria;
 import org.predictabowl.bed.domain.constants.DataCaratteristicaSecondaria;

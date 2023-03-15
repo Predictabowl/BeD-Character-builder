@@ -3,11 +3,12 @@ package org.predictabowl.bed.domain.constants;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.function.IntUnaryOperator;
 import java.util.stream.Stream;
 
-import org.predictabowl.bed.domain.attributes.AttributoFunction;
+import org.predictabowl.bed.domain.utils.FunctionsProvider;
 
-public enum DataCaratteristicaSecondaria implements CaratteristicaFunctions {
+public enum DataCaratteristicaSecondaria implements FunctionsProvider {
 	MUSCOLI,
 	VIGORE,
 	EQUILIBRIO,
@@ -28,8 +29,8 @@ public enum DataCaratteristicaSecondaria implements CaratteristicaFunctions {
 	}
 
 	@Override
-	public Map<TipoAttributo, AttributoFunction> getAttributoFunctions() {
-		EnumMap<TipoAttributo, AttributoFunction> map = new EnumMap<>(TipoAttributo.class);
+	public Map<TipoAttributo, IntUnaryOperator> getAttributoFunctions() {
+		EnumMap<TipoAttributo, IntUnaryOperator> map = new EnumMap<>(TipoAttributo.class);
 		switch (this) {
 			case MUSCOLI: 
 				map.put(TipoAttributo.CARICO, v -> v * 10 + 2);

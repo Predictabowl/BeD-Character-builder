@@ -4,11 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.predictabowl.bed.domain.attributes.factory.AttributiCollectionFactoryImpl;
+import org.predictabowl.bed.domain.attributes.factory.AttributiFunctionFactoryImpl;
 import org.predictabowl.bed.domain.characteristic.CaratteristicaPrimaria;
 import org.predictabowl.bed.domain.characteristic.CaratteristicaSecondaria;
 import org.predictabowl.bed.domain.characteristic.Caratteristiche;
-import org.predictabowl.bed.domain.characteristic.factory.CaratteristicaPrimariaFactory;
-import org.predictabowl.bed.domain.characteristic.factory.CaratteristicaSecondariaFactory;
+import org.predictabowl.bed.domain.characteristic.factory.CaratteristicaPrimariaFactoryImpl;
+import org.predictabowl.bed.domain.characteristic.factory.CaratteristicaSecondariaFactoryImpl;
 import org.predictabowl.bed.domain.characteristic.model.SubCarOffset;
 import org.predictabowl.bed.domain.constants.DataCaratteristicaPrimaria;
 import org.predictabowl.bed.domain.constants.DataCaratteristicaSecondaria;
@@ -21,10 +23,11 @@ class CaratteristicheIT {
 	@BeforeEach
 	void setUp() {
 		CostantCaratFuncRetriever carFRetr = new CostantCaratFuncRetriever();
-		CaratteristicaSecondariaFactory carFact = new CaratteristicaSecondariaFactory(carFRetr);
-		CaratteristicaPrimariaFactory carPFactory = new CaratteristicaPrimariaFactory(
-				carFRetr, carFact);
-		sut = new Caratteristiche(carPFactory);
+		AttributiFunctionFactoryImpl attrFuncFactory = new  AttributiFunctionFactoryImpl(carFRetr);
+		AttributiCollectionFactoryImpl attrCollFactory = new AttributiCollectionFactoryImpl();
+		CaratteristicaSecondariaFactoryImpl carFact = new CaratteristicaSecondariaFactoryImpl(attrFuncFactory);
+		CaratteristicaPrimariaFactoryImpl carPFactory = new CaratteristicaPrimariaFactoryImpl(attrFuncFactory, carFact, attrCollFactory);
+		sut = new Caratteristiche(carPFactory, attrCollFactory);
 	}
 	
 	@Test

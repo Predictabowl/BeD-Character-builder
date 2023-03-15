@@ -7,9 +7,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.predictabowl.bed.commons.interfaces.Mergeable;
+import org.predictabowl.bed.commons.utils.RefInteger;
+import org.predictabowl.bed.domain.attributes.factory.AttributiFunctionFactoryImpl;
+import org.predictabowl.bed.domain.characteristic.CaratteristicaSecondaria;
+import org.predictabowl.bed.domain.constants.DataCaratteristicaSecondaria;
 import org.predictabowl.bed.domain.constants.TipoAttributo;
 
-public class Attributi implements Mergeable<Attributi> {
+public class Attributi implements AttributiInterface, Mergeable<Attributi> {
 
 	private final Map<TipoAttributo, Integer> values;
 	

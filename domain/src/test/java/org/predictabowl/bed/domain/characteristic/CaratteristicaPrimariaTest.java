@@ -1,52 +1,75 @@
 package org.predictabowl.bed.domain.characteristic;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.predictabowl.bed.domain.constants.DataCaratteristicaPrimaria.DESTREZZA;
-import static org.predictabowl.bed.domain.constants.DataCaratteristicaSecondaria.CONOSCENZA;
 
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.Collection;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.predictabowl.bed.commons.exceptions.BeDIllegalValueException;
-import org.predictabowl.bed.domain.attributes.AttributoFunction;
-import org.predictabowl.bed.domain.characteristic.factory.CaratteristicaFactory;
+import org.predictabowl.bed.commons.utils.RefInteger;
+import org.predictabowl.bed.domain.attributes.AttributiCollection;
+import org.predictabowl.bed.domain.attributes.AttributiFunction;
+import org.predictabowl.bed.domain.attributes.AttributiInterface;
+import org.predictabowl.bed.domain.attributes.factory.AttributiCollectionFactory;
+import org.predictabowl.bed.domain.attributes.factory.AttributiFunctionFactory;
+import org.predictabowl.bed.domain.characteristic.factory.CaratteristicaSecondariaFactory;
+import org.predictabowl.bed.domain.characteristic.model.CarPValue;
 import org.predictabowl.bed.domain.characteristic.model.SubCarOffset;
 import org.predictabowl.bed.domain.constants.DataCaratteristicaPrimaria;
-import org.predictabowl.bed.domain.constants.DataCaratteristicaSecondaria;
-import org.predictabowl.bed.domain.constants.TipoAttributo;
-import org.predictabowl.bed.domain.utils.CaratteristicaFunctionsRetriever;
 
 class CaratteristicaPrimariaTest {
 
-	private static final int FIXTURE_MAX_VALUE = 10;
-	private static final int FIXTURE_MIN_VALUE = 1;
 	private static final int FIXTURE_VALUE = 7;
 
 	private CaratteristicaPrimaria sut;
 	@Mock
-	private CaratteristicaFactory<CaratteristicaSecondaria, DataCaratteristicaSecondaria> carFactory;
+	private CaratteristicaSecondariaFactory carFactory;
 	@Mock
-	private CaratteristicaFunctionsRetriever carFRetriever;
+	private AttributiFunctionFactory attrFunFactory;
+	@Mock
+	private AttributiCollectionFactory attrCollFactory;
+	@Mock
+	private AttributiCollection attrCollection;
+	@Mock
+	private CarPValue carPValue;
+	@Mock
+	private CaratteristicaSecondaria carS1;
+	@Mock
+	private CaratteristicaSecondaria carS2;
+	@Mock
+	private AttributiFunction attributiI0;
+	@Mock
+	private AttributiInterface attributiI1;
+	@Mock
+	private AttributiInterface attributiI2;
+	@Captor
+	private ArgumentCaptor<Collection<AttributiInterface>> collCaptor;
 	
 	private AutoCloseable openMocks;
 
 	@BeforeEach
 	void setUp() {
 		openMocks = MockitoAnnotations.openMocks(this);
-		sut = makeCarPr(DESTREZZA, FIXTURE_VALUE);
+		when(carPValue.getValue()).thenReturn(FIXTURE_VALUE);
+		when(attrFunFactory.get(any(), isA(DataCaratteristicaPrimaria.class)))
+			.thenReturn(attributiI0);
+		when(carFactory.get(eq(DESTREZZA.sub1), any())).thenReturn(carS1);
+		when(carFactory.get(eq(DESTREZZA.sub2), any())).thenReturn(carS2);
+		when(carS1.getAttributi()).thenReturn(attributiI1);
+		when(carS2.getAttributi()).thenReturn(attributiI2);
+		when(attrCollFactory.get(any())).thenReturn(attrCollection);
+		sut = makeCarPr(DESTREZZA);
 	}
 
 	@AfterEach
@@ -55,97 +78,55 @@ class CaratteristicaPrimariaTest {
 	}
 
 	@Test
-	void test_baseValue_subCharacteristic1() {
-		CaratteristicaSecondaria car = makeCar(CONOSCENZA, 2);
-		when(carFactory.get(any(), anyInt())).thenReturn(car);
-
-		CaratteristicaSecondaria sub1 = sut.getSubCar1();
-		assertThat(sub1).isSameAs(car);
-		verify(carFactory).get(DataCaratteristicaPrimaria.DESTREZZA.sub1, FIXTURE_VALUE);
+	void test_constructSubCars() {
+		when(carPValue.getValue()).thenReturn(15);
+		
+		verify(attrFunFactory).get(carPValue, DESTREZZA);
+		assertThat(sut.getValue()).isEqualTo(15);
+		
+		verify(carFactory).get(DESTREZZA.sub1, new RefInteger(FIXTURE_VALUE));
+		verify(carFactory).get(DESTREZZA.sub2, new RefInteger(FIXTURE_VALUE));
+		assertThat(sut.getSubCar1()).isSameAs(carS1);
+		assertThat(sut.getSubCar2()).isSameAs(carS2);
+		
 	}
 	
 	@Test
-	void test_baseValue_subCharacteristic2() {
-		CaratteristicaSecondaria car = makeCar(CONOSCENZA, 3);
-		when(carFactory.get(any(), anyInt())).thenReturn(car);
-
-		CaratteristicaSecondaria sub2 = sut.getSubCar2();
-		assertThat(sub2).isSameAs(car);
-		verify(carFactory).get(DataCaratteristicaPrimaria.DESTREZZA.sub2, FIXTURE_VALUE);
+	void test_constructAttributiCollection() {
+		verify(attrCollFactory).get(collCaptor.capture());
+		assertThat(collCaptor.getValue())
+			.containsExactlyInAnyOrder(attributiI0, attributiI1, attributiI2);
+		assertThat(sut.getAttributi()).isSameAs(attrCollection);
 	}
-	
+
 	@Test
 	void test_offset() {
-		CaratteristicaSecondaria car = makeCar(CONOSCENZA, 3);
-		when(carFactory.get(any(), anyInt())).thenReturn(car);
-
+		
 		sut.setOffset(new SubCarOffset(1));
 
-		sut.getSubCar2();
-		verify(carFactory).get(DataCaratteristicaPrimaria.DESTREZZA.sub2, FIXTURE_VALUE-1);
+		verify(carS1).setValue(FIXTURE_VALUE+1);
+		verify(carS2).setValue(FIXTURE_VALUE-1);
 		
-		sut.getSubCar1();
-		verify(carFactory).get(DataCaratteristicaPrimaria.DESTREZZA.sub1, FIXTURE_VALUE+1);
-	}
+		sut.setOffset(new SubCarOffset(0));
 
-	@Test
-	void test_exceedinglimitValues_shouldThrow() {
-		assertThatThrownBy(() -> makeCarPr(DESTREZZA, FIXTURE_MIN_VALUE-1))
-				.isInstanceOf(BeDIllegalValueException.class);
-
-		assertThatThrownBy(() -> makeCarPr(DESTREZZA, FIXTURE_MAX_VALUE+1))
-				.isInstanceOf(BeDIllegalValueException.class);
-
-		assertThatThrownBy(() -> sut.setValue(FIXTURE_MAX_VALUE + 1)).isInstanceOf(IllegalArgumentException.class);
-		assertThatThrownBy(() -> sut.setValue(FIXTURE_MIN_VALUE - 1)).isInstanceOf(IllegalArgumentException.class);
-	}
-
-	@Test
-	void test_modValue_shouldNotExceedLimits() {
-		sut.modValue(10);
-		assertThat(sut.getValue()).isEqualTo(FIXTURE_MAX_VALUE);
-
-		sut.modValue(-11);
-		assertThat(sut.getValue()).isEqualTo(FIXTURE_MIN_VALUE);
+		verify(carS1).setValue(FIXTURE_VALUE);
+		verify(carS2).setValue(FIXTURE_VALUE);
 	}
 
 	@Test
 	void test_modValue() {
 		sut.modValue(2);
-		assertThat(sut.getValue()).isEqualTo(FIXTURE_VALUE + 2);
-
-		sut.modValue(-3);
-		assertThat(sut.getValue()).isEqualTo(FIXTURE_VALUE - 1);
+		verify(carPValue).modValue(2);
 	}
 	
 	@Test
-	void test_getAttributo_shouldMergeResults() {
-		Caratteristica<?> car1 = mock(CaratteristicaSecondaria.class);
-		Caratteristica<?> car2 = mock(CaratteristicaSecondaria.class);
-		when(car1.getAttributoValue(any())).thenReturn(3);
-		when(car2.getAttributoValue(any())).thenReturn(5);
-		
-		CaratteristicaPrimaria spySut = spy(sut);
-		doReturn(car1).when(spySut).getSubCar1();
-		doReturn(car2).when(spySut).getSubCar2();
-		Map<TipoAttributo, AttributoFunction> map = new EnumMap<>(TipoAttributo.class);
-		when(carFRetriever.get(any())).thenReturn(map);
-		map.put(TipoAttributo.CRIT, v -> -2);
-		
-		int result = spySut.getAttributoValue(TipoAttributo.CRIT);
-		
-		verify(spySut).getSubCar1();
-		verify(spySut).getSubCar2();
-		verify(car1).getAttributoValue(TipoAttributo.CRIT);
-		verify(car2).getAttributoValue(TipoAttributo.CRIT);
-		assertThat(result).isEqualTo(6);
+	void test_setValue() {
+		sut.setValue(3);
+		verify(carPValue).setValue(3);
 	}
 	
-	private CaratteristicaPrimaria makeCarPr(DataCaratteristicaPrimaria type, int value) {
-		return new CaratteristicaPrimaria(type, value, carFactory, carFRetriever);
-	}
-	
-	private CaratteristicaSecondaria makeCar(DataCaratteristicaSecondaria type, int value) {
-		return new CaratteristicaSecondaria(type, value, carFRetriever);
+	private CaratteristicaPrimaria makeCarPr(DataCaratteristicaPrimaria type) {
+		return new CaratteristicaPrimaria(type, carPValue, carFactory, 
+				attrFunFactory, attrCollFactory);
 	}
 }

@@ -1,64 +1,45 @@
 package org.predictabowl.bed.domain.characteristic;
 
-import java.util.Map;
 import java.util.Objects;
 
-import org.predictabowl.bed.domain.attributes.AttributoFunction;
-import org.predictabowl.bed.domain.constants.CaratteristicaFunctions;
-import org.predictabowl.bed.domain.constants.TipoAttributo;
-import org.predictabowl.bed.domain.utils.CaratteristicaFunctionsRetriever;
+import org.predictabowl.bed.commons.utils.RefInteger;
+import org.predictabowl.bed.domain.attributes.AttributiFunction;
+import org.predictabowl.bed.domain.attributes.AttributiInterface;
+import org.predictabowl.bed.domain.attributes.factory.AttributiFunctionFactory;
+import org.predictabowl.bed.domain.utils.FunctionsProvider;
 
-public class Caratteristica<T extends CaratteristicaFunctions> {
+public class Caratteristica<T extends FunctionsProvider> {
 
-	private T type;
-	private int value;
-	private CaratteristicaFunctionsRetriever carFRetriever;
+	private final T type;
+	private final RefInteger value;
+	private final AttributiFunction attributi;
 
-	public Caratteristica(T type,
-			CaratteristicaFunctionsRetriever carFRetriever,
-			int value) {
+	protected Caratteristica(T type, RefInteger value, AttributiFunctionFactory attrsFactory) {
 		this.type = type;
-		this.carFRetriever = carFRetriever;
 		this.value = value;
+		this.attributi = attrsFactory.get(this.value, type);
 	}
 
-	public Caratteristica(T type, CaratteristicaFunctionsRetriever carFRetriever) {
-		this(type, carFRetriever, 5);
-	}
-	
 	public T getType() {
 		return type;
 	}
 
 	public int getValue() {
+		return value.getValue();
+	}
+	
+	protected void setValue(int value) {
+		this.value.setValue(value);
+	}
+	
+	protected RefInteger getRefValue() {
 		return value;
 	}
 
-	public void setValue(int value) {
-		this.value = value;
+	public AttributiInterface getAttributi() {
+		return attributi;
 	}
 	
-	public int getAttributoValue(TipoAttributo type) {
-		return getAttributoFunction(type).apply(value);
-	}
-	
-	private AttributoFunction getAttributoFunction(TipoAttributo type) {
-		Map<TipoAttributo,AttributoFunction> attrFs = carFRetriever.get(getType());
-		if (attrFs.containsKey(type)) {
-			return attrFs.get(type);
-		}
-		return (Integer v) -> 0; 
-	}
-
-	public void modValue(int mod) {
-		value += mod;
-	}
-
-	@Override
-	public String toString() {
-		return "Caratteristica [type=" + type + ", value=" + value + "]";
-	}
-
 	@Override
 	public int hashCode() {
 		return Objects.hash(type, value);
@@ -74,11 +55,12 @@ public class Caratteristica<T extends CaratteristicaFunctions> {
 		if (getClass() != obj.getClass())
 			return false;
 		Caratteristica<T> other = (Caratteristica<T>) obj;
-		return Objects.equals(type, other.type) && value == other.value;
+		return Objects.equals(type, other.type) && Objects.equals(value, other.value);
 	}
 
-	public CaratteristicaFunctionsRetriever getCarFRetriever() {
-		return carFRetriever;
+	@Override
+	public String toString() {
+		return "Caratteristica [type=" + type + ", value=" + value + "]";
 	}
 
 }
